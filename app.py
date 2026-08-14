@@ -21,13 +21,14 @@ st.markdown("""
         font-weight: bold;
     }
     .quote-box {
-        background-color: #f8f9fa;
-        border-left: 5px solid #6e0a50;
-        padding: 15px;
-        border-radius: 5px;
-        font-size: 1.15rem;
-        color: #333;
+        background-color: #fdf6fa;
+        border-left: 6px solid #6e0a50;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        color: #2b0420;
         margin-bottom: 15px;
+        font-weight: 500;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -37,28 +38,28 @@ st.write("ఆధ్యాత్మిక రోజువారీ శుభస�
 
 START_DATE = date(2026, 8, 15)
 
-# Majestic Fonts Dictionary & URLs
+# Majestic Fonts Dictionary & URLs with Bigger Default Sizes
 FONTS_INFO = {
     "ramabhadra": {
-        "name": "👑 రామభద్ర (Ramabhadra - గంభీరమైన బోల్డ్ లుక్)",
+        "name": "👑 రామభద్ర (Ramabhadra - గంభీరమైన రాయల్ బోల్డ్)",
         "file": "Ramabhadra-Regular.ttf",
         "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/ramabhadra/Ramabhadra-Regular.ttf",
-        "default_size": 52,
-        "line_gap": 26
+        "default_size": 76,
+        "line_gap_ratio": 0.45
     },
     "ramaraja": {
         "name": "📜 రామరాజ (Ramaraja - క్లాసికల్ గ్రంథ శైలి)",
         "file": "Ramaraja-Regular.ttf",
         "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/ramaraja/Ramaraja-Regular.ttf",
-        "default_size": 56,
-        "line_gap": 28
+        "default_size": 82,
+        "line_gap_ratio": 0.48
     },
     "mandali": {
-        "name": "🌸 మండలి (Mandali - క్లీన్ & సింపుల్)",
+        "name": "🌸 మండలి (Mandali - అందమైన స్వచ్ఛమైన అక్షరాలు)",
         "file": "Mandali-Regular.ttf",
         "url": "https://raw.githubusercontent.com/google/fonts/main/ofl/mandali/Mandali-Regular.ttf",
-        "default_size": 54,
-        "line_gap": 24
+        "default_size": 78,
+        "line_gap_ratio": 0.42
     }
 }
 
@@ -109,7 +110,7 @@ def wrap_text(text, font, max_width, draw):
         lines.append(" ".join(current_line))
     return lines
 
-# Majestic Poster Generator
+# Majestic Poster Generator with Dynamic Scaling
 def generate_poster(text, template_name, font_key, font_size_override=None):
     template_path = f"template_{template_name}.jpg"
     
@@ -130,17 +131,19 @@ def generate_poster(text, template_name, font_key, font_size_override=None):
     except Exception:
         font = ImageFont.truetype(font_file, font_size)
 
-    max_width = int(img_w * 0.76)
+    # 82% width allocated to allow grand presence
+    max_width = int(img_w * 0.82)
     lines = wrap_text(text, font, max_width, draw)
 
-    line_height = font_size + font_cfg["line_gap"]
+    line_height = int(font_size + (font_size * font_cfg["line_gap_ratio"]))
     total_text_h = len(lines) * line_height
     start_y = (img_h - total_text_h) // 2
 
-    # Majestic Styling Colors
-    text_color = (110, 10, 80)     # Deep Royal Maroon
-    glow_color = (255, 255, 255)   # Crisp White Outline for 3D pop
-    shadow_color = (210, 180, 140) # Soft Gold Shadow
+    # Rich Majestic Color Palette
+    text_color = (110, 8, 75)      # Royal BK Velvet Maroon
+    glow_color = (255, 255, 255)   # Crisp White Outline for 3D separation
+    shadow_color = (205, 175, 130) # Divine Golden Sand Shadow
+    stroke_thickness = max(2, int(font_size * 0.03))
 
     for i, line in enumerate(lines):
         try:
@@ -149,10 +152,10 @@ def generate_poster(text, template_name, font_key, font_size_override=None):
             x = (img_w - line_w) // 2
             y = start_y + (i * line_height)
             
-            # Shadow
-            draw.text((x + 2, y + 2), line, font=font, fill=shadow_color, layout_engine=ImageFont.Layout.RAQM)
-            # Outline & Main Text
-            draw.text((x, y), line, font=font, fill=text_color, stroke_width=1, stroke_fill=glow_color, layout_engine=ImageFont.Layout.RAQM)
+            # Subtle Elegant Shadow
+            draw.text((x + 3, y + 3), line, font=font, fill=shadow_color, layout_engine=ImageFont.Layout.RAQM)
+            # Crisp Outline & Main Text
+            draw.text((x, y), line, font=font, fill=text_color, stroke_width=stroke_thickness, stroke_fill=glow_color, layout_engine=ImageFont.Layout.RAQM)
         except Exception:
             bbox = draw.textbbox((0, 0), line, font=font)
             line_w = bbox[2] - bbox[0]
@@ -214,25 +217,29 @@ else:
         )
 
 # Typography & Adjustments
-with st.expander("⚙️ అక్షరాల శైలి & సర్దుబాట్లు (Font & Size Settings)", expanded=False):
-    selected_font = st.selectbox(
-        "✍️ ఫాంట్ ఎంచుకోండి:",
-        options=list(FONTS_INFO.keys()),
-        format_func=lambda k: FONTS_INFO[k]["name"]
-    )
-    custom_size = st.slider(
-        "🔤 అక్షరాల పరిమాణం (Font Size):",
-        min_value=35,
-        max_value=75,
-        value=FONTS_INFO[selected_font]["default_size"],
-        step=1
-    )
+with st.expander("⚙️ అక్షరాల శైలి & భారీ పరిమాణం (Font & Size Customizer)", expanded=True):
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        selected_font = st.selectbox(
+            "✍️ ఫాంట్ శైలి:",
+            options=list(FONTS_INFO.keys()),
+            format_func=lambda k: FONTS_INFO[k]["name"]
+        )
+    with col_f2:
+        # Font size slider extended from 50 to 130!
+        custom_size = st.slider(
+            "🔤 అక్షరాల సైజు (భారీ పరిమాణం):",
+            min_value=50,
+            max_value=130,
+            value=FONTS_INFO[selected_font]["default_size"],
+            step=2
+        )
 
 if current_quote:
     st.markdown(f"### 💬 {display_title}:")
     st.markdown(f'<div class="quote-box">"{current_quote}"</div>', unsafe_allow_html=True)
 
-    with st.spinner("🖼️ రాయల్ పోస్టర్ సిద్ధమవుతోంది..."):
+    with st.spinner("🖼️ గంభీరమైన భారీ రాయల్ పోస్టర్ సిద్ధమవుతోంది..."):
         poster_file = generate_poster(current_quote, selected_theme, selected_font, custom_size)
 
     if poster_file and os.path.exists(poster_file):
