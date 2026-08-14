@@ -12,22 +12,7 @@ st.title("🌸 BK Daily Quotes Generator")
 st.write("ఆధ్యాత్మిక రోజువారీ శుభసందేశాల పోస్టర్ తయారీ వ్యవస్థ")
 
 START_DATE = datetime(2026, 8, 15).date()
-
-# Telugu Font Auto-Downloader
 FONT_FILE = "Mandali-Regular.ttf"
-FONT_URL = "https://raw.githubusercontent.com/google/fonts/main/ofl/mandali/Mandali-Regular.ttf"
-
-def ensure_font_exists():
-    if not os.path.exists(FONT_FILE):
-        try:
-            res = requests.get(FONT_URL, timeout=10)
-            if res.status_code == 200:
-                with open(FONT_FILE, "wb") as f:
-                    f.write(res.content)
-        except Exception:
-            pass
-
-ensure_font_exists()
 
 # Load Quotes
 @st.cache_data
@@ -47,7 +32,11 @@ def wrap_text(text, font, max_width, draw):
     
     for word in words:
         test_line = " ".join(current_line + [word])
-        bbox = draw.textbbox((0, 0), test_line, font=font)
+        try:
+            bbox = draw.textbbox((0, 0), test_line, font=font, layout_engine=ImageFont.Layout.RAQM)
+        except Exception:
+            bbox = draw.textbbox((0, 0), test_line, font=font)
+            
         width = bbox[2] - bbox[0]
         if width <= max_width:
             current_line.append(word)
@@ -59,7 +48,7 @@ def wrap_text(text, font, max_width, draw):
         lines.append(" ".join(current_line))
     return lines
 
-# Poster Generator with Template Selection
+# Poster Generator
 def generate_poster(text, template_name):
     template_path = f"template_{template_name}.jpg"
     
@@ -71,32 +60,35 @@ def generate_poster(text, template_name):
     draw = ImageDraw.Draw(image)
     img_w, img_h = image.size
 
-    # Font Configuration
-    font_size = 55
-    if os.path.exists(FONT_FILE):
+    # Font Configuration with Complex Script Layout
+    font_size = 54
+    try:
+        font = ImageFont.truetype(FONT_FILE, font_size, layout_engine=ImageFont.Layout.RAQM)
+    except Exception:
         font = ImageFont.truetype(FONT_FILE, font_size)
-    else:
-        font = ImageFont.load_default()
 
-    max_width = int(img_w * 0.78)
+    max_width = int(img_w * 0.76)
     lines = wrap_text(text, font, max_width, draw)
 
-    line_height = font_size + 20
+    line_height = font_size + 24
     total_text_h = len(lines) * line_height
     start_y = (img_h - total_text_h) // 2
 
-    # Text Colors based on Theme
-    text_color = (128, 0, 128)  # Rich BK Purple
+    text_color = (128, 0, 128)  # BK Purple
 
     for i, line in enumerate(lines):
-        bbox = draw.textbbox((0, 0), line, font=font)
-        line_w = bbox[2] - bbox[0]
-        x = (img_w - line_w) // 2
-        y = start_y + (i * line_height)
-        
-        # Elegant shadow for crisp readability
-        draw.text((x + 2, y + 2), line, font=font, fill=(230, 230, 250))
-        draw.text((x, y), line, font=font, fill=text_color)
+        try:
+            bbox = draw.textbbox((0, 0), line, font=font, layout_engine=ImageFont.Layout.RAQM)
+            line_w = bbox[2] - bbox[0]
+            x = (img_w - line_w) // 2
+            y = start_y + (i * line_height)
+            draw.text((x, y), line, font=font, fill=text_color, layout_engine=ImageFont.Layout.RAQM)
+        except Exception:
+            bbox = draw.textbbox((0, 0), line, font=font)
+            line_w = bbox[2] - bbox[0]
+            x = (img_w - line_w) // 2
+            y = start_y + (i * line_height)
+            draw.text((x, y), line, font=font, fill=text_color)
 
     output_path = f"output_{template_name}.jpg"
     image.save(output_path, quality=95)
